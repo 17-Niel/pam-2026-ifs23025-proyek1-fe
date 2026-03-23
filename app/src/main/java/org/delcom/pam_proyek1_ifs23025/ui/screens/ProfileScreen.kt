@@ -15,16 +15,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -33,6 +35,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -162,7 +165,7 @@ fun ProfileScreen(
             title = "Profile",
             showBackButton = false,
             customMenuItems = menuItems,
-            elevation = 0 // <--- TAMBAHKAN BARIS INI
+            elevation = 0
         )
 
         Box(modifier = Modifier.weight(1f)) {
@@ -180,9 +183,7 @@ fun ProfileScreen(
         BottomNavComponent(navController = navController)
     }
 
-    // ==========================================
-    // DIALOG EDIT PROFIL
-    // ==========================================
+    // DIALOG EDIT PROFIL - Desain Diperbaiki
     if (showEditProfileDialog) {
         var inputName by remember { mutableStateOf(profile!!.name) }
         var inputUsername by remember { mutableStateOf(profile!!.username) }
@@ -190,81 +191,157 @@ fun ProfileScreen(
 
         AlertDialog(
             onDismissRequest = { showEditProfileDialog = false },
-            title = { Text("Edit Profil") },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Edit Profil",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = inputName,
                         onValueChange = { inputName = it },
                         label = { Text("Nama Lengkap") },
-                        modifier = Modifier.fillMaxWidth()
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                     OutlinedTextField(
                         value = inputUsername,
                         onValueChange = { inputUsername = it },
                         label = { Text("Username") },
-                        modifier = Modifier.fillMaxWidth()
+                        leadingIcon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                     OutlinedTextField(
                         value = inputAbout,
                         onValueChange = { inputAbout = it },
                         label = { Text("Tentang Saya / Bio") },
+                        leadingIcon = { Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 3
+                        minLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    technicianViewModel.putUserMe(authToken ?: "", inputName, inputUsername,inputAbout)
-                    showEditProfileDialog = false
-                    isLoading = true
-                }) { Text("Simpan") }
+                Button(
+                    onClick = {
+                        technicianViewModel.putUserMe(authToken ?: "", inputName, inputUsername, inputAbout)
+                        showEditProfileDialog = false
+                        isLoading = true
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f)
+                ) {
+                    Text("Simpan", fontWeight = FontWeight.Bold)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showEditProfileDialog = false }) { Text("Batal") }
-            }
+                TextButton(onClick = { showEditProfileDialog = false }) {
+                    Text("Batal")
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
-    // ==========================================
-    // DIALOG UBAH KATA SANDI
-    // ==========================================
+    // DIALOG UBAH KATA SANDI - Desain Diperbaiki
     if (showEditPasswordDialog) {
         var oldPassword by remember { mutableStateOf("") }
         var newPassword by remember { mutableStateOf("") }
 
         AlertDialog(
             onDismissRequest = { showEditPasswordDialog = false },
-            title = { Text("Ubah Kata Sandi") },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Ubah Kata Sandi",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = oldPassword,
                         onValueChange = { oldPassword = it },
                         label = { Text("Sandi Lama") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
                         label = { Text("Sandi Baru") },
+                        leadingIcon = { Icon(Icons.Outlined.LockOpen, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    technicianViewModel.putUserMePassword(authToken ?: "", oldPassword, newPassword)
-                    showEditPasswordDialog = false
-                    isLoading = true
-                }) { Text("Ubah") }
+                Button(
+                    onClick = {
+                        technicianViewModel.putUserMePassword(authToken ?: "", oldPassword, newPassword)
+                        showEditPasswordDialog = false
+                        isLoading = true
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f)
+                ) {
+                    Text("Ubah", fontWeight = FontWeight.Bold)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showEditPasswordDialog = false }) { Text("Batal") }
-            }
+                TextButton(onClick = { showEditPasswordDialog = false }) {
+                    Text("Batal")
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 }
@@ -282,29 +359,52 @@ fun ProfileUI(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. BAGIAN HEADER (MELENGKUNG & FOTO PROFIL)
+        // 1. HEADER SECTION - Desain Lebih Modern
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp),
+                .height(280.dp),
             contentAlignment = Alignment.TopCenter
         ) {
-            // Latar Belakang Biru Melengkung
+            // Background Gradient Melengkung
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(bottomStart = 48.dp, bottomEnd = 48.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
+                    )
             )
 
-            // Foto Profil Mengambang
+            // Foto Profil Mengambang dengan Desain Lebih Mewah
             Box(
                 modifier = Modifier
-                    .padding(top = 90.dp)
+                    .padding(top = 100.dp)
                     .size(140.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
+                // Shadow Layer untuk efek depth
+                Box(
+                    modifier = Modifier
+                        .size(144.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
                 AsyncImage(
                     model = ToolsHelper.getUserImage(profile.id) + "?time=${System.currentTimeMillis()}",
                     contentDescription = "Photo Profil",
@@ -314,20 +414,26 @@ fun ProfileUI(
                     modifier = Modifier
                         .size(140.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
-                        .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape)
-                        .shadow(8.dp, CircleShape)
+                        .border(4.dp, Color.White, CircleShape)
+                        .shadow(12.dp, CircleShape)
                         .clickable { onEditPhotoClick() }
                 )
 
-                // Ikon Kamera Kecil untuk Ganti Foto
+                // Ikon Kamera Premium
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(44.dp)
                         .offset(x = (-4).dp, y = (-4).dp)
-                        .shadow(4.dp, CircleShape)
+                        .shadow(6.dp, CircleShape)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondary)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.secondary,
+                                    MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        )
                         .clickable { onEditPhotoClick() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -335,48 +441,87 @@ fun ProfileUI(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Ganti Foto",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
         }
 
-        // 2. BAGIAN INFORMASI NAMA & BIO
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. NAMA & USERNAME dengan Efek Modern
         Text(
             text = profile.name,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.1f),
+                    offset = Offset(1f, 1f),
+                    blurRadius = 2f
+                )
+            ),
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Text(
-            text = "@${profile.username}",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+        Spacer(modifier = Modifier.height(4.dp))
 
-        if (!profile.about.isNullOrBlank()) {
+        Card(
+            modifier = Modifier
+                .wrapContentWidth()
+                .padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            ),
+            elevation = CardDefaults.cardElevation(0.dp)
+        ) {
             Text(
-                text = "\"${profile.about}\"",
+                text = "@${profile.username}",
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 16.dp, start = 32.dp, end = 32.dp)
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
             )
+        }
+
+        // 3. BIO dengan Card Modern
+        if (!profile.about.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ),
+                elevation = CardDefaults.cardElevation(0.dp)
+            ) {
+                Text(
+                    text = "\"${profile.about}\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 3. BAGIAN KOTAK MENU PENGATURAN (CARD)
+        // 4. MENU CARD - Desain Lebih Modern
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            shape = RoundedCornerShape(16.dp),
+                .padding(horizontal = 20.dp)
+                .shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(20.dp),
+                    spotColor = Color.Black.copy(alpha = 0.08f)
+                ),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(0.dp)
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 // Menu Edit Profil
@@ -387,24 +532,50 @@ fun ProfileUI(
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Edit Profil",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
+                    // Icon Container dengan Background
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                RoundedCornerShape(14.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = "Edit Profil",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "Edit Informasi Profil",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Edit Informasi Profil",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Perbarui nama, username, dan bio Anda",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                // Garis Pemisah (Divider)
+                // Divider dengan efek lebih halus
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 0.8.dp
                 )
 
                 // Menu Ubah Kata Sandi
@@ -415,23 +586,47 @@ fun ProfileUI(
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Ubah Sandi",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                RoundedCornerShape(14.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Lock,
+                            contentDescription = "Ubah Sandi",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "Ubah Kata Sandi",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Ubah Kata Sandi",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Perbarui kata sandi akun Anda",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(80.dp)) // Ruang untuk BottomNav
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 

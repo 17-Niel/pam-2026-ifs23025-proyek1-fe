@@ -80,7 +80,7 @@ fun TopAppBarComponent(
     showMenu: Boolean = true,
     customMenuItems: List<TopAppBarMenuItem>? = null,
     onBackClick: (() -> Unit)? = null,
-    elevation: Int = 8, // Sedikit lebih tebal bayangannya
+    elevation: Int = 8,
     withSearch: Boolean = false,
     searchQuery: TextFieldValue = TextFieldValue(""),
     onSearchQueryChange: (TextFieldValue) -> Unit = {},
@@ -98,7 +98,6 @@ fun TopAppBarComponent(
         isSearching = state
     }
 
-
     // Menu items default
     val defaultMenuItems = listOf(
         TopAppBarMenuItem(
@@ -115,15 +114,14 @@ fun TopAppBarComponent(
             .fillMaxWidth()
             .shadow(
                 elevation = elevation.dp,
-                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp), // Melengkung modern
+                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             ),
-//        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-        color = MaterialTheme.colorScheme.primary, // PERBAIKAN: Background Biru Tua Utama
+        color = MaterialTheme.colorScheme.primary,
         tonalElevation = elevation.dp
     ) {
         TopAppBar(
-            modifier = Modifier.padding(horizontal = 4.dp), // Sedikit jarak dari pinggir layar
+            modifier = Modifier.padding(horizontal = 4.dp),
             title = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -131,13 +129,13 @@ fun TopAppBarComponent(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     if (showBackButton && !isSearching) {
-                        // Back button (Tombol Kembali)
+                        // Back button
                         Card(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(CircleShape), // PERBAIKAN: Bentuk bulat penuh agar elegan
+                                .clip(CircleShape),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color.White.copy(alpha = 0.2f), // Semi transparan di atas biru
+                                containerColor = Color.White.copy(alpha = 0.2f),
                             ),
                             onClick = {
                                 onBackClick?.invoke() ?: RouteHelper.back(navController)
@@ -151,7 +149,7 @@ fun TopAppBarComponent(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Back",
                                     modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimary // Ikon putih
+                                    tint = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }
@@ -160,13 +158,16 @@ fun TopAppBarComponent(
                     }
 
                     if (isSearching) {
-                        // Area Pencarian
+                        // Area Pencarian - DIPERBAIKI AGAR TERLIHAT JELAS
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp)
+                                .height(48.dp)
                                 .clip(RoundedCornerShape(50))
-                                .background(Color.White.copy(alpha = 0.2f)), // Background search bar
+                                .background(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(50)
+                                ),
                             contentAlignment = Alignment.CenterStart
                         ) {
                             TextField(
@@ -174,15 +175,16 @@ fun TopAppBarComponent(
                                 onValueChange = { onSearchQueryChange(it) },
                                 placeholder = {
                                     Text(
-                                        "Cari kegiatan...",
-                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                                        "Cari barang...",
+                                        color = Color(0xFF9CA3AF),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                 },
                                 singleLine = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .focusRequester(queryFocusRequester),
+                                    .focusRequester(queryFocusRequester)
+                                    .padding(horizontal = 8.dp),
 
                                 keyboardOptions = KeyboardOptions(
                                     imeAction = ImeAction.Search
@@ -195,18 +197,22 @@ fun TopAppBarComponent(
                                 ),
 
                                 colors = TextFieldDefaults.colors(
-                                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                    focusedTextColor = Color(0xFF1F2937),
+                                    unfocusedTextColor = Color(0xFF1F2937),
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     disabledContainerColor = Color.Transparent,
                                     errorContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent, // Hilangkan garis bawah
+                                    focusedIndicatorColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
                                     disabledIndicatorColor = Color.Transparent,
-                                    cursorColor = MaterialTheme.colorScheme.onPrimary
+                                    cursorColor = Color(0xFF3B82F6),
+                                    focusedPlaceholderColor = Color(0xFF9CA3AF),
+                                    unfocusedPlaceholderColor = Color(0xFF9CA3AF)
                                 ),
-                                textStyle = MaterialTheme.typography.bodyLarge
+                                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                    color = Color(0xFF1F2937)
+                                )
                             )
                         }
 
@@ -218,21 +224,21 @@ fun TopAppBarComponent(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold // PERBAIKAN: Judul lebih tebal
+                                fontWeight = FontWeight.Bold
                             ),
-                            color = MaterialTheme.colorScheme.onPrimary // Teks Putih
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent, // Agar mengikuti background Surface di atasnya (Primary)
+                containerColor = Color.Transparent,
                 titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                actionIconContentColor = MaterialTheme.colorScheme.onPrimary // Ikon-ikon menu berwarna putih
+                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
             ),
             actions = {
                 if (isSearching) {
-                    // Close search button
+                    // Close search button - DIPERBAIKI
                     IconButton(
                         onClick = {
                             setSearchState(false)
@@ -243,7 +249,7 @@ fun TopAppBarComponent(
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Tutup pencarian",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = Color.White
                         )
                     }
                 } else {
@@ -281,7 +287,7 @@ fun TopAppBarComponent(
                                 onDismissRequest = {
                                     setExpandState(false)
                                 },
-                                containerColor = MaterialTheme.colorScheme.surface, // Balik ke putih/hitam
+                                containerColor = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier.padding(8.dp)
                             ) {
@@ -343,7 +349,6 @@ fun TopAppBarComponent(
         )
     }
 }
-
 
 // Preview functions
 @Preview(showBackground = true, name = "Default - Light Mode")

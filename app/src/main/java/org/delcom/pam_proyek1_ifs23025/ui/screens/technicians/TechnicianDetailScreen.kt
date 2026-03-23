@@ -5,16 +5,21 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +28,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,8 +50,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,8 +63,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 import org.delcom.pam_proyek1_ifs23025.R
 import org.delcom.pam_proyek1_ifs23025.helper.ConstHelper
 import org.delcom.pam_proyek1_ifs23025.helper.RouteHelper
@@ -192,11 +206,20 @@ fun TechniciansDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
+                        MaterialTheme.colorScheme.background
+                    ),
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY
+                )
+            )
     ) {
         TopAppBarComponent(
             navController = navController,
-            title = "Detail Kegiatan",
+            title = "Detail Kerusakan Barang",
             showBackButton = true,
             customMenuItems = detailMenuItems
         )
@@ -228,6 +251,7 @@ fun TechniciansDetailUI(
 ) {
     var dataFile by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
+    val contentScale = remember { Animatable(0.95f) }
 
     val safeId = technician.id ?: ""
     val safeTitle = technician.title ?: "Tanpa Judul"
@@ -245,40 +269,81 @@ fun TechniciansDetailUI(
         dataFile = uri
     }
 
+    LaunchedEffect(Unit) {
+        contentScale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 400)
+        )
+        delay(50)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. HEADER MELENGKUNG DAN COVER BANNER
+        // PREMIUM HEADER SECTION with GLASSMORPHISM EFFECT
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp),
+                .height(320.dp)
+                .scale(contentScale.value),
             contentAlignment = Alignment.TopCenter
         ) {
-            // Latar Belakang Biru Melengkung
+            // Gradient Background with Pattern
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
-                    .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-            )
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
+                    )
+            ) {
+                // Decorative Overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.1f),
+                                    Color.Transparent
+                                ),
+                                radius = 300f
+                            )
+                        )
+                )
+            }
 
-            // Banner Cover Mengambang
+            // Premium Floating Cover Card
             Card(
                 modifier = Modifier
-                    .padding(top = 64.dp)
-                    .padding(horizontal = 24.dp)
+                    .padding(top = 60.dp)
+                    .padding(horizontal = 20.dp)
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(220.dp)
+                    .shadow(
+                        elevation = 24.dp,
+                        shape = RoundedCornerShape(28.dp),
+                        spotColor = Color.Black.copy(alpha = 0.3f),
+                        ambientColor = Color.Black.copy(alpha = 0.2f)
+                    )
                     .clickable {
                         imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
+                shape = RoundedCornerShape(28.dp),
+                elevation = CardDefaults.cardElevation(0.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
@@ -290,53 +355,120 @@ fun TechniciansDetailUI(
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Ikon Kamera di Pojok Bawah
+                    // Gradient Overlay for Text Readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .align(Alignment.BottomStart)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.6f)
+                                    )
+                                )
+                            )
+                    )
+
+                    // Premium Camera Icon
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(12.dp)
-                            .size(36.dp)
-                            .shadow(4.dp, CircleShape)
+                            .padding(16.dp)
+                            .size(48.dp)
+                            .shadow(
+                                elevation = 8.dp,
+                                shape = CircleShape,
+                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.secondary),
+                            .background(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.secondary,
+                                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
+                                    )
+                                ),
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Ganti Cover",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
             }
         }
 
-        // Tombol Simpan (Hanya Muncul Jika Gambar Baru Dipilih)
+        // Save Button with Premium Animation
         if (dataFile != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { onChangeCover(context, dataFile!!) },
-                shape = RoundedCornerShape(12.dp),
+            Spacer(modifier = Modifier.height(20.dp))
+            Box(
                 modifier = Modifier
-                    .height(48.dp)
-                    .fillMaxWidth(0.6f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                )
+                    .fillMaxWidth(0.7f)
+                    .height(52.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(26.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                    )
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        ),
+                        shape = RoundedCornerShape(26.dp)
+                    )
+                    .clickable { onChangeCover(context, dataFile!!) },
+                contentAlignment = Alignment.Center
             ) {
-                Text("Simpan Cover Baru", fontWeight = FontWeight.Bold)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Verified,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "SIMPAN COVER BARU",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        letterSpacing = 0.5.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // 2. JUDUL DAN STATUS
+        // PREMIUM TITLE SECTION
         Text(
             text = safeTitle,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.1f),
+                    offset = Offset(1f, 1f),
+                    blurRadius = 2f
+                )
+            ),
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
@@ -344,84 +476,269 @@ fun TechniciansDetailUI(
                 .padding(horizontal = 24.dp)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        val statusColor = when (safeStatus.lowercase()) {
-            "Kerusakan Sedang" -> MaterialTheme.colorScheme.secondaryContainer
-            "Kerusakan Berat" -> MaterialTheme.colorScheme.errorContainer
-            else -> MaterialTheme.colorScheme.tertiaryContainer
-        }
-
-        val statusTextColor = when (safeStatus.lowercase()) {
-            "Kerusakan Sedang" -> MaterialTheme.colorScheme.onSecondaryContainer
-            "Kerusakan Berat" -> MaterialTheme.colorScheme.onErrorContainer
-            else -> MaterialTheme.colorScheme.onTertiaryContainer
+        // Premium Status Badge
+        val statusOption = when (safeStatus.lowercase()) {
+            "Kerusakan Sedang" -> Triple(
+                MaterialTheme.colorScheme.secondary,
+                MaterialTheme.colorScheme.onSecondary,
+                "S"
+            )
+            "Kerusakan Berat" -> Triple(
+                MaterialTheme.colorScheme.error,
+                MaterialTheme.colorScheme.onError,
+                "B"
+            )
+            else -> Triple(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary,
+                "R"
+            )
         }
 
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
+                .shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(50),
+                    spotColor = statusOption.first.copy(alpha = 0.3f)
+                )
                 .clip(RoundedCornerShape(50))
-                .background(statusColor)
-                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            statusOption.first,
+                            statusOption.first.copy(alpha = 0.8f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(50)
+                )
+                .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-            Text(
-                text = safeStatus.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = statusTextColor
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 3. CARD DETAIL INFORMASI
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(2.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                DetailItem(label = "Teknisi Penanggung Jawab", value = safeTeknisi)
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
-
-                DetailItem(label = "Tanggal Diterima", value = safeTanggal.ifEmpty { "-" })
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
-
-                DetailItem(label = "Nama Pemilik", value = safeNama.ifEmpty { "-" })
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
-
-                DetailItem(label = "Estimasi Biaya", value = "Rp ${safeEstimasi.ifEmpty { "0" }}")
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
-
-                DetailItem(label = "Deskripsi Kerusakan Barang/Alat", value = safeDeskripsi.ifEmpty { "-" })
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = statusOption.third,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = statusOption.second,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = safeStatus.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = statusOption.second,
+                    letterSpacing = 0.8.sp
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(80.dp)) // Ruang untuk Bottom Nav
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // PREMIUM DETAIL CARD
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    spotColor = Color.Black.copy(alpha = 0.12f),
+                    ambientColor = Color.Black.copy(alpha = 0.08f)
+                ),
+            shape = RoundedCornerShape(28.dp),
+            elevation = CardDefaults.cardElevation(0.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                // Header Detail
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(14.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Informasi Detail Service",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Premium Detail Items
+                PremiumDetailItem(
+                    label = "TEKNISI PENANGGUNG JAWAB",
+                    value = safeTeknisi,
+                    icon = Icons.Default.Person
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 1.dp
+                )
+
+                PremiumDetailItem(
+                    label = "TANGGAL DITERIMA",
+                    value = safeTanggal.ifEmpty { "-" },
+                    icon = Icons.Default.Person
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 1.dp
+                )
+
+                PremiumDetailItem(
+                    label = "NAMA PEMILIK",
+                    value = safeNama.ifEmpty { "-" },
+                    icon = Icons.Default.Person
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 1.dp
+                )
+
+                PremiumDetailItem(
+                    label = "ESTIMASI BIAYA",
+                    value = "Rp ${formatCurrency(safeEstimasi)}",
+                    icon = Icons.Default.Person,
+                    isPrice = true
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 1.dp
+                )
+
+                // Description Section with Premium Styling
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "DESKRIPSI KERUSAKAN",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        ),
+                        elevation = CardDefaults.cardElevation(0.dp)
+                    ) {
+                        Text(
+                            text = safeDeskripsi.ifEmpty { "-" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(100.dp)) // Ruang untuk Bottom Nav
     }
 }
 
-// Fungsi Bantuan untuk Menampilkan Item Detail yang Rapi
+// Premium Detail Item Component
 @Composable
-fun DetailItem(label: String, value: String) {
+fun PremiumDetailItem(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isPrice: Boolean = false
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 0.8.sp
+            )
+        }
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = if (isPrice) FontWeight.Bold else FontWeight.Medium,
+                fontSize = if (isPrice) 20.sp else 16.sp
+            ),
+            color = if (isPrice) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+// Helper function to format currency
+fun formatCurrency(amount: String): String {
+    return try {
+        val number = amount.toLong()
+        val formatter = java.text.NumberFormat.getInstance(java.util.Locale("id", "ID"))
+        formatter.format(number)
+    } catch (e: Exception) {
+        amount
     }
 }
 
@@ -429,5 +746,21 @@ fun DetailItem(label: String, value: String) {
 @Composable
 fun PreviewTechniciansDetailUI() {
     DelcomTheme {
+        TechniciansDetailUI(
+            technician = ResponseTechnicianData(
+                id = "1",
+                userId = "user1",
+                title = "AC Ruangan Bermasalah",
+                description = "AC tidak mengeluarkan udara dingin, suara berisik dan mengeluarkan air",
+                status = "Kerusakan Sedang",
+                tanggalDiterima = "15 Maret 2026",
+                namaPemilik = "Budi Santoso",
+                estimasiBiaya = "350000",
+                teknisi = "Teknisi AC",
+                createdAt = "",
+                updatedAt = ""
+            ),
+            onChangeCover = { _, _ -> }
+        )
     }
 }
