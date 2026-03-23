@@ -90,10 +90,9 @@ interface TechnicianApiService {
     ): ResponseMessage<String?>
 
     // ----------------------------------
-    // Events (Kegiatan Himpunan)
     // ----------------------------------
 
-    // Ambil semua data kegiatan
+
     @GET("technicians")
     suspend fun getTechnicians(
         @Header("Authorization") authToken: String,
@@ -104,27 +103,27 @@ interface TechnicianApiService {
         @Query("teknisi") teknisi: String? = null  // Filter baru
     ): ResponseMessage<ResponseTechnicians?>
 
-    // Ambil data statistik kegiatan
+
     @GET("technicians/stats")
     suspend fun getTechnicianStats(
         @Header("Authorization") authToken: String
     ): ResponseMessage<ResponseTechnicianStats?>
 
-    // Menambahkan data kegiatan
+
     @POST("technicians")
     suspend fun postTechnician(
         @Header("Authorization") authToken: String,
         @Body request: RequestTechnician
     ): ResponseMessage<ResponseTechnicianAdd?>
 
-    // Ambil data kegiatan berdasarkan id
+
     @GET("technicians/{id}")
     suspend fun getTechnicianById(
         @Header("Authorization") authToken: String,
         @Path("id") technicianId: String // Path parameter disesuaikan
     ): ResponseMessage<ResponseTechnician?>
 
-    // Mengubah data kegiatan
+
     @PUT("technicians/{id}")
     suspend fun putTechnician(
         @Header("Authorization") authToken: String,
@@ -132,7 +131,7 @@ interface TechnicianApiService {
         @Body request: RequestTechnician
     ): ResponseMessage<String?>
 
-    // Ubah cover kegiatan
+
     @Multipart
     @PUT("technicians/{id}/cover")
     suspend fun putTechnicianCover(
@@ -141,7 +140,7 @@ interface TechnicianApiService {
         @Part file: MultipartBody.Part
     ): ResponseMessage<String?>
 
-    // Hapus data kegiatan
+
     @DELETE("technicians/{id}")
     suspend fun deleteTechnician(
         @Header("Authorization") authToken: String,

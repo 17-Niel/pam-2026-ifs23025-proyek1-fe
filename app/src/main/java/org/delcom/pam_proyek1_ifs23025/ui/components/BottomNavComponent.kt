@@ -50,7 +50,7 @@ sealed class MenuBottomNav(
     val iconActive: ImageVector,
 ) {
     object Home : MenuBottomNav(ConstHelper.RouteNames.Home.path, "Home", Icons.Outlined.Home, Icons.Filled.Home)
-    object Technicians : MenuBottomNav(ConstHelper.RouteNames.Technicians.path, "Kegiatan", Icons.Outlined.Engineering, Icons.Filled.Engineering)
+    object Technicians : MenuBottomNav(ConstHelper.RouteNames.Technicians.path, "Service", Icons.Outlined.Engineering, Icons.Filled.Engineering)
     object Profile : MenuBottomNav(ConstHelper.RouteNames.Profile.path, "Profile", Icons.Outlined.Person, Icons.Filled.Person)
 }
 

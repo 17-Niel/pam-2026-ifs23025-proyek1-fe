@@ -487,13 +487,14 @@ fun PremiumTechnicianItemUI(
         delay(50)
     }
 
-    val statusColor = when (safeStatus.lowercase()) {
+    val statusColor = when (safeStatus
+    ) {
         "Kerusakan Sedang" -> Color(0xFFF59E0B) // Oranye
         "Kerusakan Berat" -> Color(0xFFEF4444)  // Merah
         else -> Color(0xFF10B981)               // Hijau
     }
 
-    val statusInitial = when (safeStatus.lowercase()) {
+    val statusInitial = when (safeStatus) {
         "Kerusakan Sedang" -> "S"
         "Kerusakan Berat" -> "B"
         else -> "R"
@@ -651,7 +652,7 @@ fun PremiumTechnicianItemUI(
                             shape = RoundedCornerShape(3.dp)
                         )
                 ) {
-                    val progress = when (safeStatus.lowercase()) {
+                    val progress = when (safeStatus) {
                         "Kerusakan Ringan" -> 0.33f
                         "Kerusakan Sedang" -> 0.66f
                         "Kerusakan Berat" -> 1f

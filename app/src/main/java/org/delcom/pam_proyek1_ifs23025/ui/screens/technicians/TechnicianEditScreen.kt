@@ -199,7 +199,7 @@ fun TechniciansEditScreen(
     ) {
         TopAppBarComponent(
             navController = navController,
-            title = "Ubah Data Kegiatan",
+            title = "Ubah Data Service",
             showBackButton = true,
         )
         Box(modifier = Modifier.weight(1f)) {

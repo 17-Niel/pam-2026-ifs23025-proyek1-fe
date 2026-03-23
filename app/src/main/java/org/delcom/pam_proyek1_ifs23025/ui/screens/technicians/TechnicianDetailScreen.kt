@@ -348,7 +348,7 @@ fun TechniciansDetailUI(
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
                         model = dataFile ?: ToolsHelper.getTechnicianImage(safeId, safeUpdatedAt),
-                        contentDescription = "Cover Kegiatan",
+                        contentDescription = "Foto Barang Mau Di Service",
                         placeholder = painterResource(R.drawable.img_placeholder),
                         error = painterResource(R.drawable.img_placeholder),
                         contentScale = ContentScale.Crop,
@@ -479,7 +479,7 @@ fun TechniciansDetailUI(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Premium Status Badge
-        val statusOption = when (safeStatus.lowercase()) {
+        val statusOption = when (safeStatus) {
             "Kerusakan Sedang" -> Triple(
                 MaterialTheme.colorScheme.secondary,
                 MaterialTheme.colorScheme.onSecondary,

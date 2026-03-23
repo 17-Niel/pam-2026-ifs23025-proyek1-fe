@@ -46,5 +46,5 @@ data class ResponseTechnicianStatsData(
     val total: Long = 0,
     val complete: Long = 0,
     val active: Long = 0,
-    val canceled: Long = 0 // Tambahan untuk statistik kegiatan yang dibatalkan
+    val canceled: Long = 0 // Tambahan  yang dibatalkan
 )

@@ -64,7 +64,7 @@ interface ITechnicianRepository {
     ): ResponseMessage<String?>
 
     // ----------------------------------
-    // Events (Kegiatan Himpunan)
+
     // ----------------------------------
 
     // Ubah nama fungsi dan parameter
@@ -73,8 +73,8 @@ interface ITechnicianRepository {
         search: String? = null,
         page: Int = 1,
         perPage: Int = 10,
-        status: String? = null, // Filter status kegiatan
-        teknisi: String? = null  // Filter divisi kegiatan
+        status: String? = null, // Filter
+        teknisi: String? = null  // Filter
     ): ResponseMessage<ResponseTechnicians?>
 
     suspend fun getTechnicianStats(
