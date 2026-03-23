@@ -89,14 +89,14 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         isLoading = true
 
-        if(uiStateAuth.auth !is AuthUIState.Success){
+        if (uiStateAuth.auth !is AuthUIState.Success) {
             RouteHelper.to(navController, ConstHelper.RouteNames.Home.path, true)
             return@LaunchedEffect
         }
 
         authToken = (uiStateAuth.auth as AuthUIState.Success).data.authToken
 
-        if(uiStateTechnician.profile is ProfileUIState.Success){
+        if (uiStateTechnician.profile is ProfileUIState.Success) {
             profile = (uiStateTechnician.profile as ProfileUIState.Success).data
             isLoading = false
             return@LaunchedEffect
@@ -106,33 +106,74 @@ fun ProfileScreen(
     }
 
     LaunchedEffect(uiStateTechnician.profile) {
-        if(uiStateTechnician.profile !is ProfileUIState.Loading){
+        if (uiStateTechnician.profile !is ProfileUIState.Loading) {
             isLoading = false
-            if(uiStateTechnician.profile is ProfileUIState.Success){
+            if (uiStateTechnician.profile is ProfileUIState.Success) {
                 profile = (uiStateTechnician.profile as ProfileUIState.Success).data
-            }else{
+            } else {
                 RouteHelper.to(navController, ConstHelper.RouteNames.Home.path, true)
             }
         }
     }
 
-    LaunchedEffect(uiStateTechnician.profileChange, uiStateTechnician.profileChangePassword, uiStateTechnician.profileChangePhoto) {
-        val states = listOf(uiStateTechnician.profileChange, uiStateTechnician.profileChangePassword, uiStateTechnician.profileChangePhoto)
-
-        states.forEach { state ->
-            if (state is TechnicianActionUIState.Success) {
-                Toast.makeText(context, "Berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+    // ========== PERBAIKAN 1: Pisahkan LaunchedEffect untuk ganti password ==========
+    // Untuk edit profile
+    LaunchedEffect(uiStateTechnician.profileChange) {
+        when (val state = uiStateTechnician.profileChange) {
+            is TechnicianActionUIState.Success -> {
+                Toast.makeText(context, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
                 technicianViewModel.uiState.value.profileChange = TechnicianActionUIState.Loading
-                technicianViewModel.uiState.value.profileChangePassword = TechnicianActionUIState.Loading
-                technicianViewModel.uiState.value.profileChangePhoto = TechnicianActionUIState.Loading
                 technicianViewModel.getProfile(authToken ?: "")
-            } else if (state is TechnicianActionUIState.Error) {
-                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                isLoading = false
             }
+            is TechnicianActionUIState.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                isLoading = false
+            }
+            else -> {}
         }
     }
 
-    fun onLogout(token: String){
+    // Untuk ganti password - PERBAIKAN: Logout otomatis setelah sukses
+    LaunchedEffect(uiStateTechnician.profileChangePassword) {
+        when (val state = uiStateTechnician.profileChangePassword) {
+            is TechnicianActionUIState.Success -> {
+                Toast.makeText(
+                    context,
+                    "Password berhasil diubah! Silakan login kembali.",
+                    Toast.LENGTH_LONG
+                ).show()
+                technicianViewModel.uiState.value.profileChangePassword = TechnicianActionUIState.Loading
+                // Logout otomatis setelah ganti password
+                authViewModel.logout(authToken ?: "")
+                isLoading = false
+            }
+            is TechnicianActionUIState.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                isLoading = false
+            }
+            else -> {}
+        }
+    }
+
+    // Untuk ganti foto
+    LaunchedEffect(uiStateTechnician.profileChangePhoto) {
+        when (val state = uiStateTechnician.profileChangePhoto) {
+            is TechnicianActionUIState.Success -> {
+                Toast.makeText(context, "Foto profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                technicianViewModel.uiState.value.profileChangePhoto = TechnicianActionUIState.Loading
+                technicianViewModel.getProfile(authToken ?: "")
+                isLoading = false
+            }
+            is TechnicianActionUIState.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                isLoading = false
+            }
+            else -> {}
+        }
+    }
+
+    fun onLogout(token: String) {
         isLoading = true
         authViewModel.logout(token)
     }
@@ -143,7 +184,7 @@ fun ProfileScreen(
         }
     }
 
-    if(isLoading || profile == null){
+    if (isLoading || profile == null) {
         LoadingUI()
         return
     }
@@ -183,7 +224,7 @@ fun ProfileScreen(
         BottomNavComponent(navController = navController)
     }
 
-    // DIALOG EDIT PROFIL - Desain Diperbaiki
+    // DIALOG EDIT PROFIL
     if (showEditProfileDialog) {
         var inputName by remember { mutableStateOf(profile!!.name) }
         var inputUsername by remember { mutableStateOf(profile!!.username) }
@@ -270,10 +311,12 @@ fun ProfileScreen(
         )
     }
 
-    // DIALOG UBAH KATA SANDI - Desain Diperbaiki
+    // ========== PERBAIKAN 2: DIALOG UBAH KATA SANDI dengan Konfirmasi ==========
     if (showEditPasswordDialog) {
         var oldPassword by remember { mutableStateOf("") }
         var newPassword by remember { mutableStateOf("") }
+        var confirmPassword by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
 
         AlertDialog(
             onDismissRequest = { showEditPasswordDialog = false },
@@ -297,12 +340,16 @@ fun ProfileScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = oldPassword,
-                        onValueChange = { oldPassword = it },
+                        onValueChange = {
+                            oldPassword = it
+                            errorMessage = null
+                        },
                         label = { Text("Sandi Lama") },
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         visualTransformation = PasswordVisualTransformation(),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = errorMessage != null,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             focusedLabelColor = MaterialTheme.colorScheme.primary
@@ -310,22 +357,72 @@ fun ProfileScreen(
                     )
                     OutlinedTextField(
                         value = newPassword,
-                        onValueChange = { newPassword = it },
+                        onValueChange = {
+                            newPassword = it
+                            errorMessage = null
+                        },
                         label = { Text("Sandi Baru") },
                         leadingIcon = { Icon(Icons.Outlined.LockOpen, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                         visualTransformation = PasswordVisualTransformation(),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = errorMessage != null,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             focusedLabelColor = MaterialTheme.colorScheme.primary
                         )
                     )
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = {
+                            confirmPassword = it
+                            errorMessage = null
+                        },
+                        label = { Text("Konfirmasi Sandi Baru") },
+                        leadingIcon = { Icon(Icons.Outlined.LockOpen, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = errorMessage != null,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
+                        // ========== PERBAIKAN 3: Validasi Input ==========
+                        when {
+                            oldPassword.isEmpty() -> {
+                                errorMessage = "Sandi lama tidak boleh kosong"
+                                return@Button
+                            }
+                            newPassword.isEmpty() -> {
+                                errorMessage = "Sandi baru tidak boleh kosong"
+                                return@Button
+                            }
+                            newPassword.length < 6 -> {
+                                errorMessage = "Sandi baru minimal 6 karakter"
+                                return@Button
+                            }
+                            newPassword != confirmPassword -> {
+                                errorMessage = "Konfirmasi sandi tidak cocok"
+                                return@Button
+                            }
+                        }
+
                         technicianViewModel.putUserMePassword(authToken ?: "", oldPassword, newPassword)
                         showEditPasswordDialog = false
                         isLoading = true
@@ -333,7 +430,7 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
-                    Text("Ubah", fontWeight = FontWeight.Bold)
+                    Text("Ubah Sandi", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -352,21 +449,20 @@ fun ProfileUI(
     onEditPhotoClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onEditPasswordClick: () -> Unit
-){
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. HEADER SECTION - Desain Lebih Modern
+        // 1. HEADER SECTION
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(280.dp),
             contentAlignment = Alignment.TopCenter
         ) {
-            // Background Gradient Melengkung
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -383,14 +479,12 @@ fun ProfileUI(
                     )
             )
 
-            // Foto Profil Mengambang dengan Desain Lebih Mewah
             Box(
                 modifier = Modifier
                     .padding(top = 100.dp)
                     .size(140.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                // Shadow Layer untuk efek depth
                 Box(
                     modifier = Modifier
                         .size(144.dp)
@@ -419,7 +513,6 @@ fun ProfileUI(
                         .clickable { onEditPhotoClick() }
                 )
 
-                // Ikon Kamera Premium
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -449,7 +542,6 @@ fun ProfileUI(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2. NAMA & USERNAME dengan Efek Modern
         Text(
             text = profile.name,
             style = MaterialTheme.typography.headlineSmall.copy(
@@ -484,7 +576,6 @@ fun ProfileUI(
             )
         }
 
-        // 3. BIO dengan Card Modern
         if (!profile.about.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(16.dp))
             Card(
@@ -509,7 +600,6 @@ fun ProfileUI(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 4. MENU CARD - Desain Lebih Modern
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -524,7 +614,6 @@ fun ProfileUI(
             elevation = CardDefaults.cardElevation(0.dp)
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                // Menu Edit Profil
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -532,7 +621,6 @@ fun ProfileUI(
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Icon Container dengan Background
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -571,14 +659,12 @@ fun ProfileUI(
                     )
                 }
 
-                // Divider dengan efek lebih halus
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 20.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
                     thickness = 0.8.dp
                 )
 
-                // Menu Ubah Kata Sandi
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -649,7 +735,7 @@ fun getMultipartFromUri(context: Context, uri: Uri): MultipartBody.Part? {
 
 @Preview(showBackground = true, name = "Light Mode")
 @Composable
-fun PreviewProfileUI(){
+fun PreviewProfileUI() {
     DelcomTheme {
         ProfileUI(
             profile = ResponseUserData(
